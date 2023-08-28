@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 import com.shop.common.utils.PageUtils;
+import com.shop.product.vo.AttrVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,7 +28,7 @@ import com.shop.common.utils.R;
  */
 @RestController
 @RequestMapping("product/attr")
-public class AttrController {
+public class    AttrController {
     @Autowired
     private AttrService attrService;
 
@@ -59,8 +60,8 @@ public class AttrController {
      */
     @RequestMapping("/save")
     //@RequiresPermissions("product:attr:save")
-    public R save(@RequestBody AttrEntity attr){
-		attrService.save(attr);
+    public R save(@RequestBody AttrVo attr){
+		attrService.saveAttr(attr);
 
         return R.ok();
     }

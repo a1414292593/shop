@@ -1,7 +1,7 @@
 package com.shop.product.dao;
 
-import com.shop.product.entity.SpuInfoDescEntity;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.shop.product.entity.SpuInfoDescEntity;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
