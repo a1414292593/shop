@@ -32,7 +32,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     public PageUtils queryPage(Map<String, Object> params) {
         IPage<CategoryEntity> page = this.page(
                 new Query<CategoryEntity>().getPage(params),
-                new QueryWrapper<CategoryEntity>()
+                new QueryWrapper<>()
         );
 
         return new PageUtils(page);
@@ -67,12 +67,12 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     @Override
     @Transactional
     public void updateCascade(CategoryEntity category) {
-        this.updateById(category);
+        updateById(category);
         categoryBrandRelationService.updateCategory(category.getCatId(), category.getName());
     }
 
     private void finParentPath(Long catelogId, List<Long> paths) {
-        CategoryEntity byId = this.getById(catelogId);
+        CategoryEntity byId = getById(catelogId);
         if (byId.getParentCid() != 0) {
             finParentPath(byId.getParentCid(), paths);
         }

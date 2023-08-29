@@ -3,9 +3,13 @@ package com.shop.product.controller;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.shop.common.utils.PageUtils;
+import com.shop.product.entity.BrandEntity;
+import com.shop.product.vo.BrandVo;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,9 +39,30 @@ public class CategoryBrandRelationController {
     @GetMapping("/category/list")
     //@RequiresPermissions("product:categorybrandrelation:list")
     public R list(@RequestParam("brandId") Long brandId){
-        List<CategoryBrandRelationEntity> data = categoryBrandRelationService.list(new QueryWrapper<>().eq("brand_id", brandId));
+        List<CategoryBrandRelationEntity> data = categoryBrandRelationService.list(new QueryWrapper<CategoryBrandRelationEntity>().eq("brand_id", brandId));
 
         return R.ok().put("page", data);
+    }
+
+    @GetMapping("/brands/list")
+    public R relationBrandsList(@RequestParam(value = "catId")Long catId) {
+         List<BrandEntity> brandEntities = categoryBrandRelationService.getBrandsByCatId(catId);
+        List<BrandVo> brandVos= brandEntities.stream()
+                .map(item -> {
+                    BrandVo brandVo = new BrandVo();
+                    brandVo.setBrandName(item.getName());
+                    brandVo.setBrandId(brandVo.getBrandId());
+                    return brandVo;
+                }).collect(Collectors.toList());
+        return R.ok().put("data", brandVos);
+    }
+
+    @GetMapping("list")
+    //@RequiresPermissions("product:categorybrandrelation:list")
+    public R list(@RequestParam Map<String, Object> params){
+        PageUtils page = categoryBrandRelationService.queryPage(params);
+
+        return R.ok().put("page", page);
     }
 
 
