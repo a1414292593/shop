@@ -7,10 +7,17 @@ import com.shop.common.utils.PageUtils;
 import com.shop.product.service.CategoryBrandRelationService;
 import com.shop.product.vo.Catelog2Vo;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -34,7 +41,10 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     CategoryBrandRelationService categoryBrandRelationService;
 
     @Resource
-    StringRedisTemplate stringRedisTemplate;
+    StringRedisTemplate redisTemplate;
+
+    @Resource
+    RedissonClient redissonClient;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -72,6 +82,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         return paths.toArray(new Long[0]);
     }
 
+    @CacheEvict(value = "category", allEntries = true)
     @Override
     @Transactional
     public void updateCascade(CategoryEntity category) {
@@ -79,24 +90,68 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         categoryBrandRelationService.updateCategory(category.getCatId(), category.getName());
     }
 
+    @Cacheable(value = {"category"}, key = "#root.method.name")
     @Override
     public List<CategoryEntity> getLevel1Categorys() {
         return baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
     }
 
+//    @Cacheable(value = {"category"}, key = "#root.method.name")
+//    @Override
+//    public Map<String, List<Catelog2Vo>> getCatalogJson() {
+//        List<CategoryEntity> selectList = baseMapper.selectList(null);
+//
+//        List<CategoryEntity> level1Categorys = getParentCid(selectList, 0L);
+//
+//        return level1Categorys.stream().collect(Collectors.toMap(item -> item.getCatId().toString(), v -> {
+//            List<CategoryEntity> categoryEntities = getParentCid(selectList, v.getCatId());
+//            List<Catelog2Vo> catelog2Vos = null;
+//            if (categoryEntities != null) {
+//                catelog2Vos = categoryEntities.stream().map(l2 -> {
+//                    Catelog2Vo catelog2Vo = new Catelog2Vo(v.getCatId().toString(), null, l2.getCatId().toString(), l2.getName());
+//                    List<CategoryEntity> level3Catalog = getParentCid(selectList, l2.getCatId());
+//                    if (level3Catalog != null) {
+//                        List<Catelog2Vo.Catelog3Vo> catelog3Vos = level3Catalog.stream()
+//                                .map(l3 -> new Catelog2Vo.Catelog3Vo(l2.getCatId().toString(), l3.getCatId().toString(), l3.getName()))
+//                                .collect(Collectors.toList());
+//                        catelog2Vo.setCatalog3List(catelog3Vos);
+//                    }
+//
+//                    return catelog2Vo;
+//                }).collect(Collectors.toList());
+//            }
+//            return catelog2Vos;
+//        }));
+//    }
+
     @Override
     public Map<String, List<Catelog2Vo>> getCatalogJson() {
 
-        String catalogJson = stringRedisTemplate.opsForValue().get("catalogJson");
+        String catalogJson = redisTemplate.opsForValue().get("catalogJson");
 
         if (!StringUtils.isEmpty(catalogJson)) {
             return JSON.parseObject(catalogJson, new TypeReference<Map<String, List<Catelog2Vo>>>(){});
         }
 
-        Map<String, List<Catelog2Vo>> collect = getCatalogJsonByDB();
-        stringRedisTemplate.opsForValue().append("catalogJson", JSON.toJSONString(collect));
+        return getCatalogJsonByDBWithRedisLock();
+    }
 
-        return collect;
+    private Map<String, List<Catelog2Vo>> getCatalogJsonByDBWithRedisLock() {
+        RLock lock = redissonClient.getLock("catalogJson-lock");
+        lock.lock();
+
+        Map<String, List<Catelog2Vo>> catalogJsonByDB;
+        try {
+            String catalogJson = redisTemplate.opsForValue().get("catalogJson");
+            if (!StringUtils.isEmpty(catalogJson)) {
+                return JSON.parseObject(catalogJson, new TypeReference<Map<String, List<Catelog2Vo>>>(){});
+            }
+            catalogJsonByDB = getCatalogJsonByDB();
+        } finally {
+            lock.unlock();
+        }
+
+        return catalogJsonByDB;
     }
 
     private Map<String, List<Catelog2Vo>> getCatalogJsonByDB() {
@@ -123,6 +178,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
             }
             return catelog2Vos;
         }));
+        redisTemplate.opsForValue().set("catalogJson", JSON.toJSONString(collect), 1, TimeUnit.DAYS);
         return collect;
     }
 
