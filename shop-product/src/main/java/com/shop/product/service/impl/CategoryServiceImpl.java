@@ -1,8 +1,13 @@
 package com.shop.product.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.shop.common.utils.Query;
 import com.shop.common.utils.PageUtils;
 import com.shop.product.service.CategoryBrandRelationService;
+import com.shop.product.vo.Catelog2Vo;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -27,6 +32,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Resource
     CategoryBrandRelationService categoryBrandRelationService;
+
+    @Resource
+    StringRedisTemplate stringRedisTemplate;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -69,6 +77,59 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     public void updateCascade(CategoryEntity category) {
         updateById(category);
         categoryBrandRelationService.updateCategory(category.getCatId(), category.getName());
+    }
+
+    @Override
+    public List<CategoryEntity> getLevel1Categorys() {
+        return baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
+    }
+
+    @Override
+    public Map<String, List<Catelog2Vo>> getCatalogJson() {
+
+        String catalogJson = stringRedisTemplate.opsForValue().get("catalogJson");
+
+        if (!StringUtils.isEmpty(catalogJson)) {
+            return JSON.parseObject(catalogJson, new TypeReference<Map<String, List<Catelog2Vo>>>(){});
+        }
+
+        Map<String, List<Catelog2Vo>> collect = getCatalogJsonByDB();
+        stringRedisTemplate.opsForValue().append("catalogJson", JSON.toJSONString(collect));
+
+        return collect;
+    }
+
+    private Map<String, List<Catelog2Vo>> getCatalogJsonByDB() {
+        List<CategoryEntity> selectList = baseMapper.selectList(null);
+
+        List<CategoryEntity> level1Categorys = getParentCid(selectList, 0L);
+
+        Map<String, List<Catelog2Vo>> collect = level1Categorys.stream().collect(Collectors.toMap(item -> item.getCatId().toString(), v -> {
+            List<CategoryEntity> categoryEntities = getParentCid(selectList, v.getCatId());
+            List<Catelog2Vo> catelog2Vos = null;
+            if (categoryEntities != null) {
+                catelog2Vos = categoryEntities.stream().map(l2 -> {
+                    Catelog2Vo catelog2Vo = new Catelog2Vo(v.getCatId().toString(), null, l2.getCatId().toString(), l2.getName());
+                    List<CategoryEntity> level3Catalog = getParentCid(selectList, l2.getCatId());
+                    if (level3Catalog != null) {
+                        List<Catelog2Vo.Catelog3Vo> catelog3Vos = level3Catalog.stream()
+                                .map(l3 -> new Catelog2Vo.Catelog3Vo(l2.getCatId().toString(), l3.getCatId().toString(), l3.getName()))
+                                .collect(Collectors.toList());
+                        catelog2Vo.setCatalog3List(catelog3Vos);
+                    }
+
+                    return catelog2Vo;
+                }).collect(Collectors.toList());
+            }
+            return catelog2Vos;
+        }));
+        return collect;
+    }
+
+    private List<CategoryEntity> getParentCid(List<CategoryEntity> selectList, Long parent_cid) {
+        return selectList.stream()
+                .filter(item -> Objects.equals(item.getParentCid(), parent_cid))
+                .collect(Collectors.toList());
     }
 
     private void finParentPath(Long catelogId, List<Long> paths) {

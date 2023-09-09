@@ -1,4 +1,4 @@
-package com.shop.product.controller;
+package com.shop.product.app.controller;
 
 import java.util.Arrays;
 import java.util.HashMap;

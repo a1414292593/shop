@@ -3,8 +3,10 @@ package com.shop.product.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import com.shop.common.utils.PageUtils;
+import com.shop.product.entity.SkuInfoEntity;
 import com.shop.product.entity.SpuInfoDescEntity;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -19,5 +21,6 @@ public interface SpuInfoDescService extends IService<SpuInfoDescEntity> {
     PageUtils queryPage(Map<String, Object> params);
 
     void saveSpuInfoDesc(SpuInfoDescEntity spuInfoDescEntity);
+
 }
 
