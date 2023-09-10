@@ -1,4 +1,4 @@
-package com.shop.shopsearch.service;
+package com.shop.search.service;
 
 import com.shop.common.to.SkuEsModel;
 import java.io.IOException;

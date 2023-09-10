@@ -1,9 +1,9 @@
-package com.shop.shopsearch.controller;
+package com.shop.search.controller;
 
 import com.shop.common.exception.BizCodeEnum;
 import com.shop.common.to.SkuEsModel;
 import com.shop.common.utils.R;
-import com.shop.shopsearch.service.ProductSaveService;
+import com.shop.search.service.ProductSaveService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

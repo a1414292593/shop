@@ -1,10 +1,10 @@
-package com.shop.shopsearch.service.impl;
+package com.shop.search.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.shop.common.to.SkuEsModel;
-import com.shop.shopsearch.config.ElasticSearchConfig;
-import com.shop.shopsearch.constant.EsConstant;
-import com.shop.shopsearch.service.ProductSaveService;
+import com.shop.search.config.ElasticSearchConfig;
+import com.shop.search.constant.EsConstant;
+import com.shop.search.service.ProductSaveService;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;

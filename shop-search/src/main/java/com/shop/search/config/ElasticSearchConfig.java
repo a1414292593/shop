@@ -1,4 +1,4 @@
-package com.shop.shopsearch.config;
+package com.shop.search.config;
 
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.*;

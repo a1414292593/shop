@@ -1,7 +1,7 @@
-package com.shop.shopsearch;
+package com.shop.search;
 
 import com.alibaba.fastjson.JSON;
-import com.shop.shopsearch.config.ElasticSearchConfig;
+import com.shop.search.config.ElasticSearchConfig;
 import lombok.Data;
 import lombok.ToString;
 import org.elasticsearch.action.search.SearchRequest;
@@ -10,7 +10,6 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
@@ -22,7 +21,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.util.List;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
