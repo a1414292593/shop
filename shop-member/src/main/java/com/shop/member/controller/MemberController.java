@@ -3,13 +3,14 @@ package com.shop.member.controller;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.shop.common.exception.BizCodeEnum;
+import com.shop.member.exception.PhoneExistException;
+import com.shop.member.exception.UsernameExistException;
 import com.shop.member.feign.CouponFeignService;
+import com.shop.member.vo.MemberLoginVo;
+import com.shop.member.vo.MemberRegisterVo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.shop.member.entity.MemberEntity;
 import com.shop.member.service.MemberService;
@@ -41,6 +42,28 @@ public class MemberController {
         member.setNickname("张三");
         R coupons = couponFeignService.memberCoupons();
         return R.ok().put("memeber", member).put("coupons", coupons.get("coupons"));
+    }
+
+    @PostMapping("/regist")
+    public R register(@RequestBody MemberRegisterVo vo) {
+        try {
+            memberService.regist(vo);
+        } catch (PhoneExistException e) {
+            return R.error(BizCodeEnum.PHONE_EXIST_EXCEPTION.getCode(), BizCodeEnum.PHONE_EXIST_EXCEPTION.getMsg());
+        } catch (UsernameExistException e) {
+            return R.error(BizCodeEnum.USER_EXIST_EXCEPTION.getCode(), BizCodeEnum.USER_EXIST_EXCEPTION.getMsg());
+        }
+        return R.ok();
+    }
+
+    @PostMapping("/login")
+    public R login(@RequestBody MemberLoginVo vo) {
+        MemberEntity member = memberService.login(vo);
+        if (member == null) {
+            return R.error(BizCodeEnum.LOGINACCT_PASSWORD_INVALID_EXCEPTION.getCode(),
+                    BizCodeEnum.LOGINACCT_PASSWORD_INVALID_EXCEPTION.getMsg());
+        }
+        return R.ok();
     }
 
     /**

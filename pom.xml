@@ -28,6 +28,7 @@
         <module>shop-gateway</module>
         <module>shop-third-party</module>
         <module>shop-search</module>
+        <module>shop-auth-server</module>
     </modules>
 
 </project>

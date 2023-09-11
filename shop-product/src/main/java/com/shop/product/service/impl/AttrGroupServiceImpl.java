@@ -5,6 +5,7 @@ import com.shop.common.utils.Query;
 import com.shop.product.entity.AttrEntity;
 import com.shop.product.service.AttrService;
 import com.shop.product.vo.AttrGroupWithAttrsVo;
+import com.shop.product.vo.SpuItemAttrGroupVo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -73,6 +74,11 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
                 attrGroupWithAttrsVo.setAttrs(attrEntities);
                 return attrGroupWithAttrsVo;
                 }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<SpuItemAttrGroupVo> getAttrGroupWithAttrsBySpuId(Long spuId, Long catalogId) {
+        return baseMapper.getAttrGroupWithAttrsBySpuId(spuId, catalogId);
     }
 
 }

@@ -1,7 +1,20 @@
 spring:
+  alicloud:
+    from: 19173136739@163.com
   cloud:
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848
+  mail:
+    host: smtp.163.com
+    username: 19173136739@163.com
+    password: XFZMIFRVPOWHDEOT
+    port: 465
+    properties:
+      from: 19173136739@163.com
+      mail:
+        smtp:
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory
 server:
   port: 30000

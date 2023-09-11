@@ -3,6 +3,8 @@ package com.shop.member.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.shop.common.utils.PageUtils;
 import com.shop.member.entity.MemberEntity;
+import com.shop.member.vo.MemberLoginVo;
+import com.shop.member.vo.MemberRegisterVo;
 
 import java.util.Map;
 
@@ -16,5 +18,13 @@ import java.util.Map;
 public interface MemberService extends IService<MemberEntity> {
 
     PageUtils queryPage(Map<String, Object> params);
+
+    void regist(MemberRegisterVo vo);
+
+    void checkPhoneUnique(String phone);
+
+    void checkUsernameUnique(String username);
+
+    MemberEntity login(MemberLoginVo vo);
 }
 
